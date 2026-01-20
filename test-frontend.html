@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+        .result {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #4CAF50;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+        .success {
+            border-left-color: #4CAF50;
+            background: #e8f5e9;
+        }
+        .token-display {
+            font-size: 12px;
+            word-break: break-all;
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🍳 Recipe API Connection Test</h1>
+    
+    <!-- Test 1: Get All Recipes (Public) -->
+    <div class="section">
+        <h2>Test 1: Get All Recipes (Public)</h2>
+        <button onclick="testGetRecipes()">Fetch Recipes</button>
+        <div id="recipes-result" class="result"></div>
+    </div>
+
+    <!-- Test 2: Signup -->
+    <div class="section">
+        <h2>Test 2: Signup (Create Account)</h2>
+        <input type="text" id="signup-username" placeholder="Username" value="testuser">
+        <input type="email" id="signup-email" placeholder="Email" value="test@example.com">
+        <input type="password" id="signup-password" placeholder="Password" value="password123">
+        <button onclick="testSignup()">Sign Up</button>
+        <div id="signup-result" class="result"></div>
+    </div>
+
+    <!-- Test 3: Login -->
+    <div class="section">
+        <h2>Test 3: Login</h2>
+        <input type="email" id="login-email" placeholder="Email" value="john@recipes.com">
+        <input type="password" id="login-password" placeholder="Password" value="password123">
+        <button onclick="testLogin()">Login</button>
+        <div id="login-result" class="result"></div>
+    </div>
+
+    <!-- Test 4: Create Recipe (Protected) -->
+    <div class="section">
+        <h2>Test 4: Create Recipe (Requires Login)</h2>
+        <p>First login above, then click here:</p>
+        <button onclick="testCreateRecipe()">Create Test Recipe</button>
+        <div id="create-result" class="result"></div>
+    </div>
+
+    <!-- Current Token Display -->
+    <div class="section">
+        <h2>Current Token</h2>
+        <div id="token-display" class="token-display">No token yet - login first!</div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+        let currentToken = null;
+
+        // Display token
+        function displayToken(token) {
+            currentToken = token;
+            document.getElementById('token-display').textContent = token || 'No token';
+        }
+
+        // Test 1: Get all recipes (public)
+        async function testGetRecipes() {
+            const resultDiv = document.getElementById('recipes-result');
+            resultDiv.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/recipes`);
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `Success! Found ${data.count} recipes:\n\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Error: ${error.message}\n\nMake sure your API is running on port 3000!`;
+            }
+        }
+
+        // Test 2: Signup
+        async function testSignup() {
+            const resultDiv = document.getElementById('signup-result');
+            resultDiv.textContent = 'Creating account...';
+            
+            const username = document.getElementById('signup-username').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/auth/signup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `Success! Account created:\n\n${JSON.stringify(data.user, null, 2)}`;
+                    displayToken(data.token);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `Error: ${data.error}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Test 3: Login
+        async function testLogin() {
+            const resultDiv = document.getElementById('login-result');
+            resultDiv.textContent = 'Logging in...';
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `Success! Logged in as:\n\n${JSON.stringify(data.user, null, 2)}`;
+                    displayToken(data.token);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `Error: ${data.error}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Test 4: Create recipe (protected)
+        async function testCreateRecipe() {
+            const resultDiv = document.getElementById('create-result');
+            
+            if (!currentToken) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Please login first!';
+                return;
+            }
+            
+            resultDiv.textContent = 'Creating recipe...';
+            
+            const newRecipe = {
+                title: "Frontend Test Recipe",
+                ingredients: "JavaScript, HTML, CSS, Love",
+                instructions: "Connect frontend to backend, add some styling, enjoy!",
+                prep_time: 30,
+                cook_time: 60,
+                servings: 1,
+                difficulty: "medium",
+                favorite: 1,
+                category_id: 1
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/api/recipes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify(newRecipe)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `Success! Recipe created:\n\n${JSON.stringify(data.recipe, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `Error: ${data.error}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- displays site properly based on user's device -->
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/images/favicon-32x32.png">
+  <title>Frontend Mentor | Recipe page</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+  <body>
+    <nav class="nav">
+      <div class="nav-content">
+        <a href="index.html" class="nav-logo">🍳 My Recipes</a>
+        <div class="nav-links" id="navLinks">
+            <!-- JavaScript will populate this -->
+        </div>
+      </div>
+    </nav>
+
+    <main class="main">
+      <img class="omelette" src="./image-omelette.jpeg" alt="Omelette">
+
+      <h1 class="title" id="recipeTitle">Loading...</h1>
+
+      <p class="recipe-author" id="recipeAuthor">Loading...</p>
+
+      <p class="description" id="descriptionText">Loading...</p>
+
+      <section class="prep-time">
+        <h2 class="prep-time-title">Preparation time</h2>
+
+        <ul>
+          <li><span class="bullet-space" id="totalTime">Loading...</span></li>
+          <li><span class="bullet-space" id="prepTime">Loading...</span></li>
+          <li><span class="bullet-space" id="cookTime">Loading...</span></li>
+          <li><span class="bullet-space" id="servings">Loading...</span></li>
+        </ul>
+      </section>
+
+      <h2 class="sub-heading">Ingredients</h2>
+
+      <ul id="ingredientsList"></ul>
+
+      <div class="hr"></div>
+
+      <h2 class="sub-heading">Instructions</h2>
+
+      <ol id="instructionsList"></ol>
+
+      <div class="hr"></div>
+
+      <!-- <h2 class="sub-heading">Nutrition</h2>
+
+      <p>The table below shows nutritional values per 
+        serving without the additional fillings.
+      </p>
+
+      <table>
+        <tr>
+          <td class="nutrient">Calories</td>
+          <td class="nutrient-value">277kcal</td>
+        </tr>
+        <tr class="divider-row"><td colspan="2"></td></tr>
+        <tr>
+          <td class="nutrient">Carbs</td>
+          <td class="nutrient-value">0g</td>
+        </tr>
+        <tr class="divider-row"><td colspan="2"></td></tr>
+        <tr>
+          <td class="nutrient">Protein</td>
+          <td class="nutrient-value">20g</td>
+        </tr>
+        <tr class="divider-row"><td colspan="2"></td></tr>
+        <tr>
+          <td class="nutrient">Fat</td>
+          <td class="nutrient-value">22g</td>
+        </tr>
+      </table> -->
+
+      <div id="ownerActions" class="hidden">
+        <button id="editBtn" class="btn btn-edit">Edit Recipe</button>
+        <button id="deleteBtn" class="btn btn-delete">Delete Recipe</button>
+      </div>
+      
+      <!-- <div class="attribution">
+        Challenge by <a href="https://www.frontendmentor.io?ref=challenge" target="_blank">Frontend Mentor</a>. 
+        Coded by <a href="#">Your Name Here</a>.
+      </div> -->
+    </main>
+    <script>
+        const API_URL = 'http://localhost:3000'
+
+        // Get the recipe ID from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const recipeId = urlParams.get('id');
+
+        // Fetch the recipe
+        async function loadRecipe() {
+            try {
+                const response = await fetch(`${API_URL}/api/recipes/${recipeId}`);
+                const recipe = await response.json();
+                console.log("Got recipe:", recipe);
+
+                // Update title
+                document.getElementById('recipeTitle').textContent = recipe.title || 'Untitled Recipe';
+                document.getElementById('recipeAuthor').textContent = 
+                  recipe.author ? `By ${recipe.author}` : 'By Unknown Author';
+                document.getElementById('descriptionText').textContent = recipe.category_name;
+
+                // Update quantities
+                document.getElementById('totalTime').innerHTML = `<strong>Total</strong>: Approximately ${recipe.prep_time + recipe.cook_time} minutes`;
+                document.getElementById('prepTime').innerHTML = `<strong>Preparation</strong>: ${recipe.prep_time} minutes`;
+                document.getElementById('cookTime').innerHTML = `<strong>Cooking</strong>: ${recipe.cook_time} minutes`;
+                document.getElementById('servings').innerHTML = `<strong>Servings</strong>: ${recipe.servings}`;
+                
+                // Update Ingredients
+                const ingredientsArray = recipe.ingredients.split(', ');
+                const ingredientsHTML = ingredientsArray
+                  .map(ingredient => `<li><span class="bullet-space">${ingredient}</span></li>`)
+                  .join('');
+
+                document.getElementById('ingredientsList').innerHTML = ingredientsHTML;
+
+                // Update Instructions
+                const instructionsArray = recipe.instructions.split(', ');
+                const instructionsHTML = instructionsArray
+                  .map(instruction => `<li>${instruction}</li>`)
+                  .join('');
+                document.getElementById('instructionsList').innerHTML = instructionsHTML;
+                  
+                // Check if user owns this recipe
+                checkOwnership(recipe);
+
+            } catch (error) {
+                console.log("Error:", error);
+                document.getElementById('recipeTitle').textContent = "Error loading recipe";
+
+            }
+        }
+
+        // Check Ownership of the recipe
+        function checkOwnership(recipe) {
+
+          console.log('🔍 Checking ownership for recipe:', recipe);
+
+          // GET token and user from localStorage
+          const token = localStorage.getItem('token');
+          const userJson = localStorage.getItem('user');
+
+          console.log('🔑 Token exists:', !!token);
+          console.log('👤 User exists:', !!userJson);
+          
+          // Check if user is logged in
+          if (!token || !userJson) {
+            console.log('❌ Not logged in - hiding buttons');
+            // Not logged in - buttons stay hidden
+            return;
+          }
+          
+          // Parse the user JSON
+          const currentUser = JSON.parse(userJson);
+
+          console.log('👤 Current user:', currentUser);
+          console.log('🍳 Recipe owner:', recipe.user_id);
+          
+          // Check if this user owns the recipe
+          if (recipe.user_id === currentUser.id) {
+
+            console.log('✅ User owns recipe - showing buttons!');
+
+            // Show the buttons!
+            document.getElementById('ownerActions').classList.remove('hidden');
+          } else {
+              console.log('❌ User does NOT own recipe');
+          }
+        }
+          
+          // DELETE functionality
+          document.getElementById('deleteBtn').addEventListener('click', async () => {
+            // Ask for confirmation
+            const confirmed = confirm('Are you sure you want to delete this recipe?');
+            
+            if (!confirmed) {
+              return; // User clicked cancel
+            }
+            
+            // GET the token
+            const token = localStorage.getItem('token');
+            
+            try {
+              // Make DELETE request to API
+              const response = await fetch(`${API_URL}/api/recipes/${recipeId}`, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                }
+              });
+              
+              if (response.ok) {
+                alert('Recipe deleted successfully!');
+                // Redirect back to list page (of home for now)
+                window.location.href = 'index.html'; // Or wherever you want
+              } else {
+                const error = await response.json();
+                alert(`Failed to delete ${error.error}`);
+              }
+            } catch (error) {
+              console.error('Delete error:', error);
+              alert('Error deleting recipe');
+            }
+          });
+
+          // EDIT functionality
+          document.getElementById('editBtn').addEventListener('click', () => {
+            window.location.href = `edit-recipe.html?id=${recipeId}`;
+          });
+          
+          console.log("Recipe ID:", recipeId);
+          console.log("Full URL:", window.location.search);
+
+        function updateNavigation() {
+          // Step 1: Get the empty container
+          const navLinks = document.getElementById('navLinks');
+
+          // Step 2: Try to get token and user from localStorage
+          const token = localStorage.getItem('token');
+          const userJson = localStorage.getItem('user');
+
+          // Step 3: Check if BOTH exist (user is logged in)
+          if (token && userJson) {
+              // Step 4: Parse the user JSON string into an object
+              const user = JSON.parse(userJson);
+              
+              // Step 5: Create HTML for logged-in state
+              // User is logged in - show username, Create button, and Logout
+              navLinks.innerHTML = `
+                  <a href="index.html" class="nav-btn nav-btn-primary">← Back to Recipes</a>
+                  <span class="nav-username">Hello, ${user.username}! 👋</span>
+                  <button class="nav-btn nav-btn-secondary" onclick="logout()">Logout</button>
+              `;
+          } else {
+              // Step 6: If NOT logged in, show Login button
+              navLinks.innerHTML = `
+                  <button class="nav-btn nav-btn-primary" onclick="window.location.href = 'login.html';">Login</button>
+              `;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            location.reload();
+        }
+          
+        
+        // Run it!
+        loadRecipe();
+        updateNavigation();
+    </script>
+  </body>
+</html>

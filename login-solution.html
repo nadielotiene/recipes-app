@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Young+Serif&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: "Outfit", sans-serif;
+            background-color: hsl(30, 54%, 90%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+        h1 {
+            font-family: "Young Serif", serif;
+            color: hsl(24, 5%, 18%);
+            margin-bottom: 1.5rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.3rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        input {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid hsl(30, 10%, 80%);
+            border-radius: 0.4rem;
+            font-family: "Outfit", sans-serif;
+            font-size: 0.85rem;
+        }
+        button {
+            width: 100%;
+            padding: 0.8rem;
+            background: hsl(14, 45%, 36%);
+            color: white;
+            border: none;
+            border-radius: 0.4rem;
+            font-family: "Outfit", sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        button:hover {
+            background: hsl(14, 45%, 30%);
+        }
+        .error {
+            background: hsl(0, 100%, 95%);
+            color: hsl(0, 70%, 40%);
+            padding: 0.8rem;
+            border-radius: 0.4rem;
+            margin-bottom: 1rem;
+            font-size: 0.8rem;
+            display: none;
+        }
+        .success {
+            color: hsl(120, 70%, 40%);
+            text-align: center;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>🍳 Login to Recipes</h1>
+        <div id="error" class="error"></div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email" value="john@recipes.com" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" value="password123" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        <p class="success" id="success" style="display: none;">
+            ✅ Login successful! Redirecting...
+        </p>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error');
+            const successDiv = document.getElementById('success');
+            
+            errorDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Save token and user to localStorage
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // Show success
+                    successDiv.style.display = 'block';
+                    
+                    // Redirect to recipe detail page after 1 second
+                    setTimeout(() => {
+                        window.location.href = 'recipe-detail.html?id=9';
+                    }, 1000);
+                } else {
+                    errorDiv.textContent = data.error;
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Connection error. Make sure API is running!';
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

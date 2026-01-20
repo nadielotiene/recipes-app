@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>My Recipe Collection</title>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-content">
+            <a href="index.html" class="nav-logo">🍳 My Recipes</a>
+            <div class="nav-links" id="navLinks">
+                <!-- JavaScript will populate this -->
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Header with title and user info -->
+        <div class="header">
+            <h1 class="title">🔍 My Recipe Collection</h1>
+
+            <div id="headerButtons">
+            </div>
+        </div>
+
+        <input class="search-input"
+            type="text" 
+            id="searchInput" 
+            placeholder="Search recipes by title, ingredients, or author..." 
+        >
+
+        <div class="difficulty-div">
+            <!-- data-* attributes let you store custom data on HTML elements! -->
+            <!-- e.g. button.dataset.filter -->
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="easy">Easy</button>
+            <button class="filter-btn" data-filter="medium">Medium</button>
+            <button class="filter-btn" data-filter="hard">Hard</button>
+        </div>
+
+        <div class="loading" id="loading">Loading recipes...</div>
+        <div class="recipe-grid" id="recipeGrid"></div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:3000';
+        
+        let allRecipes = [];
+        
+        async function fetchRecipes() {
+            try {
+                const response = await fetch(`${API_URL}/api/recipes`);
+                const data = await response.json();
+                
+                allRecipes = data.recipes;
+                displayRecipes(allRecipes);
+            } catch (error) {
+                console.error("Error:", error);
+                document.getElementById('loading').textContent = "Error loading collection";
+            }
+        }
+        
+        function displayRecipes(recipes) {
+            document.getElementById('loading').style.display = 'none';
+            
+            const grid = document.getElementById('recipeGrid');
+            
+            grid.innerHTML = recipes.map(recipe => `
+                <div class="recipe-card" onclick="viewRecipe(${recipe.id})">
+                    <h3 class="recipe-title">${recipe.title}</h3>
+                    <p class="recipe-meta">By ${recipe.author}</p>
+                    <p class="recipe-meta">Prep ${recipe.prep_time}min | Cook ${recipe.cook_time}min</p>
+                </div>
+                `).join('');
+        }
+        function viewRecipe(id) {
+            window.location.href = `recipe-detail.html?id=${id}`;
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            // 1. Get what the user typed
+            const searchTerm = e.target.value.toLowerCase();
+
+            // 2. Filter the recipes
+            const filtered = allRecipes.filter(recipe => {
+                return recipe.title.toLowerCase().includes(searchTerm) ||
+                       recipe.ingredients.toLowerCase().includes(searchTerm) ||
+                       recipe.author.toLowerCase().includes(searchTerm);
+            });
+
+            displayRecipes(filtered);
+        });
+
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', () => {
+
+                // Remove active class from all buttons
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+
+                // Add active class to clicked button
+                button.classList.add('active');
+
+                // Get filter value (from data-filter on the HTML)
+                const filterValue = button.dataset.filter;
+
+                // Filter recipes
+                let filtered;
+                if (filterValue === 'all') {
+                    filtered = allRecipes;
+                } else {
+                    filtered = allRecipes.filter(
+                        recipe => recipe.difficulty === filterValue
+                    );
+                }
+
+                // Display
+                displayRecipes(filtered);
+            });
+        });
+
+        function updateNavigation() {
+            // Step 1: Get the empty container
+            const navLinks = document.getElementById('navLinks');
+
+            // Step 2: Try to get token and user from localStorage
+            const token = localStorage.getItem('token');
+            const userJson = localStorage.getItem('user');
+
+            // Step 3: Check if BOTH exist (user is logged in)
+            if (token && userJson) {
+                // Step 4: Parse the user JSON string into an object
+                const user = JSON.parse(userJson);
+                
+                // Step 5: Create HTML for logged-in state
+                // User is logged in - show username, Create button, and Logout
+                navLinks.innerHTML = `
+                    <a href="create-recipe.html" class="nav-btn nav-btn-primary">+ Create Recipe</a>
+                    <span class="nav-username">Hello, ${user.username}! 👋</span>
+                    <button class="nav-btn nav-btn-secondary" onclick="logout()">Logout</button>
+                `;
+            } else {
+                // Step 6: If NOT logged in, show Login button
+                navLinks.innerHTML = `
+                    <button class="nav-btn nav-btn-primary" onclick="window.location.href = 'login.html';">Login</button>
+                `;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            location.reload();
+        }
+            
+        fetchRecipes();
+        updateNavigation();
+    </script>
+</body>
+</html>
