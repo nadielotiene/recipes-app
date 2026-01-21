@@ -84,7 +84,9 @@
       
     </main>
     <script>
-        const API_URL = 'http://localhost:3000'
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
+            : 'https://recipes-app-wqp6.onrender.com';
 
         // Get the recipe ID from the URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -215,30 +217,41 @@
           console.log("Full URL:", window.location.search);
 
         function updateNavigation() {
-          // Step 1: Get the empty container
-          const navLinks = document.getElementById('navLinks');
+            // Step 1: Get the empty container
+            const navLinks = document.getElementById('navLinks');
 
-          // Step 2: Try to get token and user from localStorage
-          const token = localStorage.getItem('token');
-          const userJson = localStorage.getItem('user');
+            // Step 2: Try to get token and user from localStorage
+            const token = localStorage.getItem('token');
+            const userJson = localStorage.getItem('user');
 
-          // Step 3: Check if BOTH exist (user is logged in)
-          if (token && userJson) {
-              // Step 4: Parse the user JSON string into an object
-              const user = JSON.parse(userJson);
-              
-              // Step 5: Create HTML for logged-in state
-              // User is logged in - show username, Create button, and Logout
-              navLinks.innerHTML = `
-                  <a href="index.html" class="nav-btn nav-btn-primary">← Back to Recipes</a>
-                  <span class="nav-username">Hello, ${user.username}! 👋</span>
-                  <button class="nav-btn nav-btn-secondary" onclick="logout()">Logout</button>
-              `;
-          } else {
-              // Step 6: If NOT logged in, show Login button
-              navLinks.innerHTML = `
-                  <button class="nav-btn nav-btn-primary" onclick="window.location.href = 'login.html';">Login</button>
-              `;
+            if (!navLinks) return; // Safety check
+
+            // Step 3: Check if BOTH exist (user is logged in)
+            if (!token || !userJson) {
+                navLinks.innerHTML = `
+                    <button class="nav-btn nav-btn-primary" onclick="window.location.href='login.html'">Login</button>
+                `;
+                return;
+            }
+
+                // Step 4: Parse the user JSON string into an object
+            try {
+                const user = JSON.parse(userJson);
+                
+                // Step 5: Create HTML for logged-in state
+                // User is logged in - show username, Create button, and Logout
+                navLinks.innerHTML = `
+                    <a href="create-recipe.html" class="nav-btn nav-btn-primary">+ Create Recipe</a>
+                    <span class="nav-username">Hello, ${user.username}! 👋</span>
+                    <button class="nav-btn nav-btn-secondary" onclick="logout()">Logout</button>
+                `;
+            } catch (error) {
+                // Step 6: If NOT logged in, show Login button
+                console.error('Error', error);
+                localStorage.clear();
+                navLinks.innerHTML = `
+                    <button class="nav-btn nav-btn-primary" onclick="window.location.href='login.html';">Login</button>
+                `;
             }
         }
 

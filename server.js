@@ -9,19 +9,29 @@ app.use(express.json());
 
 // 🌐 CORS - Allow frontend to connect!
 app.use((req, res, next) => {
-    // Line 1: "I allow requests from ANY origin"
-    res.header('Access-Control-Allow-Origin', '*'); // In production instead of '*' write the site's address: e.g. 'https://myrecipeapp.com'
-    // Line 2: "I allow these HTTP methods"
+    const allowedOrigins = [
+        'http://localhost:5500',
+        'http://127.0.0.1:5500',
+        'https://recipes-app-wqp6.onrender.com'  
+    ];
+
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        // "I allow requests from ANY origin"
+        res.header('Access-Control-Allow-Origin', origin); // In testing use '*'
+    }
+
+    // "I allow these HTTP methods"
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    // Line 3: "I allow these headers in requests"
+    // "I allow these headers in requests"
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-    // Line 4-6: Handle "preflight" checks (browser's security check)
+    // Handle "preflight" checks (browser's security check)
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
 
-    // Line 7: Continue to next middleware/route
+    // Continue to next middleware/route
     next();
 });
 
@@ -451,8 +461,10 @@ app.get('/api/stats', (req, res) => {
     });
 });
 
-app.listen(3000, () => {
-    console.log('📚 Recipes API with Database running at http://localhost:3000/');
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`📚 Recipes API running on port ${PORT}`);
     console.log('\nEndpoints:');
     console.log('  GET    /api/recipes              - Get all recipes');
     console.log('  GET    /api/recipes?filter=...   - Filter recipes');

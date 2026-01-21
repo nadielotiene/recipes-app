@@ -99,7 +99,9 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:3000';
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000'
+            : 'https://recipes-app-wqp6.onrender.com';
 
         // Get recipe ID from URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -226,22 +228,33 @@
             const token = localStorage.getItem('token');
             const userJson = localStorage.getItem('user');
 
+            if (!navLinks) return; // Safety check
+
             // Step 3: Check if BOTH exist (user is logged in)
-            if (token && userJson) {
+            if (!token || !userJson) {
+                navLinks.innerHTML = `
+                    <button class="nav-btn nav-btn-primary" onclick="window.location.href='login.html'">Login</button>
+                `;
+                return;
+            }
+
                 // Step 4: Parse the user JSON string into an object
+            try {
                 const user = JSON.parse(userJson);
                 
                 // Step 5: Create HTML for logged-in state
                 // User is logged in - show username, Create button, and Logout
                 navLinks.innerHTML = `
-                    <a href="index.html" class="nav-btn nav-btn-primary">← Back to Recipes</a>
+                    <a href="index.html" class="nav-btn nav-btn-secondary">← Back to Recipes</a>
                     <span class="nav-username">Hello, ${user.username}! 👋</span>
                     <button class="nav-btn nav-btn-secondary" onclick="logout()">Logout</button>
                 `;
-            } else {
+            } catch (error) {
                 // Step 6: If NOT logged in, show Login button
+                console.error('Error', error);
+                localStorage.clear();
                 navLinks.innerHTML = `
-                    <button class="nav-btn nav-btn-primary" onclick="window.location.href = 'login.html';">Login</button>
+                    <button class="nav-btn nav-btn-primary" onclick="window.location.href='login.html';">Login</button>
                 `;
             }
         }
