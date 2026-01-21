@@ -10,7 +10,7 @@ app.use(express.json());
 // 🌐 CORS - Allow frontend to connect!
 app.use((req, res, next) => {
     // "I allow requests from ANY origin"
-    res.header('Access-Control-Allow-Origin', 'https://nadielotiene.github.io/recipes-app/index.html'); // In testing use '*'
+    res.header('Access-Control-Allow-Origin', 'https://nadielotiene.github.io'); // In testing use '*'
     // "I allow these HTTP methods"
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     // "I allow these headers in requests"

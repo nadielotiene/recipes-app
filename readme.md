@@ -27,7 +27,7 @@ A full-stack recipe management application with user authentication.
 
 ## Live Demo
 
-[Live demo from Render](https://recipes-app-wqp6.onrender.com/)
+[Live demo](https://nadielotiene.github.io/recipes-app/index.html)
 
 ## Screenshots
 
