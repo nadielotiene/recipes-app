@@ -9,18 +9,8 @@ app.use(express.json());
 
 // 🌐 CORS - Allow frontend to connect!
 app.use((req, res, next) => {
-    const allowedOrigins = [
-        'http://localhost:5500',
-        'http://127.0.0.1:5500',
-        'https://recipes-app-wqp6.onrender.com'  
-    ];
-
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-        // "I allow requests from ANY origin"
-        res.header('Access-Control-Allow-Origin', origin); // In testing use '*'
-    }
-
+    // "I allow requests from ANY origin"
+    res.header('Access-Control-Allow-Origin', 'https://nadielotiene.github.io/recipes-app/index.html'); // In testing use '*'
     // "I allow these HTTP methods"
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     // "I allow these headers in requests"
