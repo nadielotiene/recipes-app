@@ -25,6 +25,8 @@ A full-stack recipe management application with user authentication.
 4. Start the server: `npm run dev`
 5. Open `index.html` in your browser
 
+**Note: Free tier - uploaded images reset on server restart**
+
 ## Live Demo
 
 [Live demo](https://nadielotiene.github.io/recipes-app/index.html)

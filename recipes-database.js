@@ -42,6 +42,17 @@ db.exec(`
     )    
 `);
 
+// Add image column if it doesn't exist
+try {
+    db.exec(`ALTER TABLE recipes ADD COLUMN image TEXT`);
+    console.log('✅ Added image column to recipes table');
+} catch (error) {
+    // Column already exists, that's fine!
+    if (!error.message.includes('duplicate column name')) {
+        console.error('Error adding image column:', error);
+    }
+}
+
 const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get();
 if (userCount.count === 0) {
     const insertUser = db.prepare(`

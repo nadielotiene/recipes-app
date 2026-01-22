@@ -3,14 +3,55 @@ const express = require('express');
 const db = require('./recipes-database');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 app.use(express.json());
 
+// Create uploads folder if it doesn't exist
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir);
+    console.log('✅ Created uploads folder');
+}
+
+// Configure multer for image uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/'); // Save to uploads folder
+    },
+    filename: function (req, file, cb) {
+        // Create unique filename: timestamp-originalname
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+// File filter - only allow images
+const fileFilter = (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+        return cb(null, true);
+    } else {
+        cb(new Error('Only image files are allowed!'));
+    }
+};
+
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: { fileSize: 5 * 1024 *  1024 } // 5MB limit
+});
+
 // 🌐 CORS - Allow frontend to connect!
 app.use((req, res, next) => {
     // "I allow requests from ANY origin"
-    res.header('Access-Control-Allow-Origin', 'https://nadielotiene.github.io'); // In testing use '*'
+    res.header('Access-Control-Allow-Origin', '*'); // In testing use '*'
     // "I allow these HTTP methods"
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     // "I allow these headers in requests"
@@ -24,6 +65,8 @@ app.use((req, res, next) => {
     // Continue to next middleware/route
     next();
 });
+
+app.use('/uploads', express.static('uploads'));
 
 const JWT_SECRET = process.env.JWT_SECRET;
 console.log('JWT_SECRET:', JWT_SECRET ? 'Loaded ✅' : 'NOT LOADED ❌');
@@ -150,7 +193,7 @@ app.get('/api/recipes/:id', (req, res) => {
     res.json(recipe);
 });
 
-app.post('/api/recipes', authenticateToken, (req, res) => {
+app.post('/api/recipes', authenticateToken, upload.single('image'), (req, res) => {
     const { title, ingredients, instructions, prep_time, cook_time, 
         servings, difficulty, favorite, category_id } = req.body; // remove 'user_id' when using tokens
 
@@ -180,14 +223,18 @@ app.post('/api/recipes', authenticateToken, (req, res) => {
         });
     }
 
+    // Get image filename if uploaded
+    const imagePath = req.file ? req.file.filename : null;
+
     const insert = db.prepare(`
-        INSERT INTO recipes (title, ingredients, instructions, prep_time, 
-        cook_time, servings, difficulty, favorite, user_id, category_id, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+        INSERT INTO recipes (title, ingredients, instructions, prep_time, cook_time, 
+        servings, difficulty, favorite, user_id, category_id, image, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
     `);
 
-    const result = insert.run(title, ingredients, instructions, prep_time, cook_time, 
-        servings, difficulty, favorite ? 1 : 0, req.user.userId, category_id, new Date().toISOString());
+    const result = insert.run(title, ingredients, instructions, prep_time, 
+        cook_time, servings, difficulty, favorite ? 1 : 0, req.user.userId, 
+        category_id, imagePath, new Date().toISOString());
 
     const newRecipe = db.prepare(`
         SELECT recipes.*, users.username as author,
@@ -329,7 +376,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-app.put('/api/recipes/:id', authenticateToken, (req, res) => {
+app.put('/api/recipes/:id', authenticateToken, upload.single('image'), (req, res) => {
     const id = parseInt(req.params.id);
     const { title, ingredients, instructions, prep_time, 
         cook_time, servings, difficulty, favorite, category_id } = req.body;
@@ -346,15 +393,18 @@ app.put('/api/recipes/:id', authenticateToken, (req, res) => {
     if (recipe.user_id !== req.user.userId) {
         return res.status(403).json({
             error: "Forbidden: You can only update your own recipes",
-            recipe_owner: recipe.user_id,
-            your_user_id: req.user.userId
+            // recipe_owner: recipe.user_id,
+            // your_user_id: req.user.userId
         });
     }
 
+    // Get new image filename if uploaded
+    const imagePath = req.file ? req.file.filename : recipe.image;
+
     const update = db.prepare(`
         UPDATE recipes
-        SET title = ?, ingredients = ?, instructions = ?, prep_time = ?, 
-            cook_time = ?, servings = ?, difficulty = ?, favorite = ?, category_id = ?
+        SET title = ?, ingredients = ?, instructions = ?, prep_time = ?, cook_time = ?, 
+            servings = ?, difficulty = ?, favorite = ?, category_id = ?, image = ?
         WHERE ID = ?    
     `);
 
@@ -368,6 +418,7 @@ app.put('/api/recipes/:id', authenticateToken, (req, res) => {
         difficulty !== undefined ? difficulty : recipe.difficulty, 
         favorite !== undefined ? (favorite ? 1 : 0) : recipe.favorite,
         category_id !== undefined ? category_id : recipe.category_id,
+        imagePath,
         id
     );
 
