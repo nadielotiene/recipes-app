@@ -75,7 +75,7 @@ body {
 }
 
 .nav-logo:hover {
-    color: var(--rose-800);
+    color: var(--stone-600);
 }
 
 .nav-links {
@@ -191,8 +191,8 @@ h1, .title {
 }
 
 .filter-btn:hover {
-    background-color: var(--rose-50);
-    border-color: var(--rose-800);
+    background-color: var(--white);
+    border-color: var(--brown-800);
     transform: translateY(-2px);
 }
 
@@ -393,6 +393,32 @@ table td {
     gap: 1rem;
 }
 
+.recipe-card-image {
+    width: 100%; 
+    height: 200px; 
+    object-fit: cover; 
+    border-radius: 8px; 
+    margin-bottom: 1rem;
+}
+
+.recipe-card-placeholder {
+    width: 100%; 
+    height: 200px; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+    border-radius: 8px; 
+    margin-bottom: 1rem; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: white; 
+    font-size: 3rem;
+}
+
+.image-small {
+    color: #666; 
+    font-size: 0.85rem;
+}
+
 /* ===================================
    FORMS (Create/Edit/Login)
    =================================== */
@@ -559,7 +585,7 @@ body.login-page {
 }
 
 .toggle-form a {
-    color: var(--brown-800);
+    color: var(--stone-800);
     font-weight: 700;
     text-decoration: none;
     cursor: pointer;
@@ -567,7 +593,6 @@ body.login-page {
 }
 
 .toggle-form a:hover {
-    color: var(--rose-800);
     text-decoration: underline;
 }
 

@@ -82,6 +82,15 @@
                 </select>
             </div>
 
+            <!-- Image -->
+            <div class="form-group">
+                <label for="image">Recipe Image (optional)</label>
+                <input type="file" id="image" accept="image/*">
+                <small class="image-small">
+                    Max size: 5MB. Formats: JPG, PNG, GIF, WEBP
+                </small>
+            </div>
+
             <!-- Favorite -->
             <div class="form-group">
                 <div class="checkbox-group">
@@ -109,62 +118,70 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Collect all form data
-            const title = document.getElementById('title').value;
-            const ingredients = document.getElementById('ingredients').value;
-            const instructions = document.getElementById('instructions').value;
-            const prepTime = parseInt(document.getElementById('prepTime').value);
-            const cookTime = parseInt(document.getElementById('cookTime').value);
-            const servings = parseInt(document.getElementById('servings').value);
-            const difficulty = document.getElementById('difficulty').value;
-            const categoryId = parseInt(document.getElementById('category').value);
-            const favorite = document.getElementById('favorite').checked;
-
-            console.log('Form data:', { 
-                title, ingredients, instructions, prepTime, 
-                cookTime, servings, difficulty, categoryId, favorite
-             });
-
             //  Get the token from localStorage
             const token = localStorage.getItem('token');
 
             // Check if user is logged in
             if (!token) {
-                alert('You must be logged in to create a recipe!');
+                alert('You must be logged in to create a recipes!');
                 window.location.href = 'index.html';
                 return;
             }
 
-            const recipeData = {
-                title: title,
-                ingredients: ingredients,
-                instructions: instructions,
-                prep_time: prepTime,
-                cook_time: cookTime,
-                servings: servings,
-                difficulty: difficulty,
-                category_id: categoryId,
-                favorite: favorite
+            // Use FormData instead of JSON
+            const formData = new FormData();
+
+            // Collect all form data
+            formData.append('title', document.getElementById('title').value);
+            formData.append('ingredients', document.getElementById('ingredients').value);
+            formData.append('instructions', document.getElementById('instructions').value);
+            formData.append('prep_time', parseInt(document.getElementById('prepTime').value));
+            formData.append('cook_time', parseInt(document.getElementById('cookTime').value));
+            formData.append('servings', parseInt(document.getElementById('servings').value));
+            formData.append('difficulty', document.getElementById('difficulty').value);
+            formData.append('category_id', parseInt(document.getElementById('category').value));
+            formData.append('favorite', document.getElementById('favorite').checked);
+
+            // Add image file if selected
+            const imageInput = document.getElementById('image');
+            if (imageInput.files[0]) {
+                formData.append('image', imageInput.files[0]);
             }
 
-            console.log('📤 Sending to API:', recipeData);
+            // console.log('Form data:', { 
+            //     title, ingredients, instructions, prepTime, 
+            //     cookTime, servings, difficulty, categoryId, favorite
+            //  });
+
+            // const recipeData = {
+            //     title: title,
+            //     ingredients: ingredients,
+            //     instructions: instructions,
+            //     prep_time: prepTime,
+            //     cook_time: cookTime,
+            //     servings: servings,
+            //     difficulty: difficulty,
+            //     category_id: categoryId,
+            //     favorite: favorite
+            // }
+
+            // console.log('📤 Sending to API:', recipeData);
 
             try {
                 // Send POST request to API
                 const response = await fetch(`${API_URL}/api/recipes`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        // ✅ IMPORTANT: Remove 'Content-Type' header!
+                        // Browser sets it automatically with correct boundary for FormData
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify(recipeData)
+                    body: formData // ✅ Send FormData, not JSON
                 });
 
                 const data = await response.json();
 
                 console.log('API Response:', data);
-                console.log('Response status:', response.status);
-                
                 
                 if (response.ok) {
                     // Success!
@@ -172,14 +189,14 @@
                     window.location.href = 'index.html';
                 } else {
                     // Error from API
-                    console.log('Required fields:', data.required); 
+                    // console.log('Required fields:', data.required); 
                     document.getElementById('errorMessage').textContent = data.error || 'Failed to create recipe';
                     document.getElementById('errorMessage').classList.add('show');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                    document.getElementById('errorMessage').textContent = data.error || 'Connection error. Make sure API is running!';
-                    document.getElementById('errorMessage').classList.add('show');
+                document.getElementById('errorMessage').textContent = 'Connection error. Make sure API is running!';
+                document.getElementById('errorMessage').classList.add('show');
             }
         });
 

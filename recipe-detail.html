@@ -101,6 +101,17 @@
                 const recipe = await response.json();
                 console.log("Got recipe:", recipe);
 
+                // Update image
+                const imgElement = document.querySelector('.omelette');
+                if (recipe.image) {
+                  imgElement.src = `${API_URL}/uploads/${recipe.image}`;
+                  imgElement.alt = recipe.title;
+                  imgElement.style.display = 'block';
+                } else {
+                  // Show placeholder or hide
+                  imgElement.style.display = 'none';
+                }
+
                 // Update title
                 document.getElementById('recipeTitle').textContent = recipe.title || 'Untitled Recipe';
                 document.getElementById('recipeAuthor').textContent = 

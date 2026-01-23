@@ -194,8 +194,16 @@ app.get('/api/recipes/:id', (req, res) => {
 });
 
 app.post('/api/recipes', authenticateToken, upload.single('image'), (req, res) => {
-    const { title, ingredients, instructions, prep_time, cook_time, 
-        servings, difficulty, favorite, category_id } = req.body; // remove 'user_id' when using tokens
+    const title = req.body.title;
+    const ingredients = req.body.ingredients;
+    const instructions = req.body.instructions;
+    const prep_time = parseInt(req.body.prep_time);
+    const cook_time = parseInt(req.body.cook_time);
+    const servings = parseInt(req.body.servings);
+    const difficulty = req.body.difficulty;
+    const category_id = parseInt(req.body.category_id);
+    const favorite = req.body.favorite === 'true'; // ✅ Convert string to boolean
+    // remove 'user_id' when using tokens
 
     if (!title || !ingredients || !instructions || !prep_time || !cook_time ||
         !servings || !difficulty || favorite === undefined || !category_id) {

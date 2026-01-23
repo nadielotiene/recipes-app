@@ -74,11 +74,15 @@
             
             grid.innerHTML = recipes.map(recipe => `
                 <div class="recipe-card" onclick="viewRecipe(${recipe.id})">
+                    ${recipe.image && recipe.image !== 'null'
+                        ? `<img class="recipe-card-image" src="${API_URL}/uploads/${recipe.image}" alt="${recipe.title}">`
+                        : `<div class="recipe-card-placeholder">🍳</div>`
+                    }
                     <h3 class="recipe-title">${recipe.title}</h3>
                     <p class="recipe-meta">By ${recipe.author}</p>
                     <p class="recipe-meta">Prep ${recipe.prep_time}min | Cook ${recipe.cook_time}min</p>
                 </div>
-                `).join('');
+            `).join('');
         }
         function viewRecipe(id) {
             window.location.href = `recipe-detail.html?id=${id}`;
