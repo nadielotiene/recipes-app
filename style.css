@@ -414,9 +414,19 @@ table td {
     font-size: 3rem;
 }
 
-.image-small {
+.image-small, .image-p {
     color: #666; 
     font-size: 0.85rem;
+}
+
+.recipe-image {
+    max-width: 200px; 
+    border-radius: 8px; 
+    margin-top: 0.5rem;
+}
+
+#currentImage {
+    margin-top: 0.5rem;
 }
 
 /* ===================================

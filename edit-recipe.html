@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/cook-hat.png">
     <link rel="stylesheet" href="style.css">
     <title>Edit Recipe</title>
 </head>
@@ -82,6 +83,16 @@
                 </select>
             </div>
 
+            <!-- Image -->
+             <div class="form-group">
+                <label for="image">Recipe Image (optional)</label>
+                <input type="file" id="image" accept="image/*">
+                <small class="image-small">
+                    Upload new image to replace existing one. Max size: 5MB.
+                </small>
+                <div id="currentImage"></div>
+             </div>
+
             <!-- Favorite -->
             <div class="form-group">
                 <div class="checkbox-group">
@@ -124,6 +135,14 @@
 
                 console.log('Loaded recipe:', recipe);
 
+                // Show current image if exists
+                if (recipe.image) {
+                    document.getElementById('currentImage').innerHTML = `
+                        <p class="image-p">Current image:</p>
+                        <img class="recipe-image" src="${API_URL}/uploads/${recipe.image}" alt="Current">
+                    `;
+                }
+
                 // Prefill from with existing data
                 document.getElementById('title').value = recipe.title;
                 document.getElementById('ingredients').value = recipe.ingredients;
@@ -146,22 +165,6 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Collect all form data
-            const title = document.getElementById('title').value;
-            const ingredients = document.getElementById('ingredients').value;
-            const instructions = document.getElementById('instructions').value;
-            const prepTime = parseInt(document.getElementById('prepTime').value);
-            const cookTime = parseInt(document.getElementById('cookTime').value);
-            const servings = parseInt(document.getElementById('servings').value);
-            const difficulty = document.getElementById('difficulty').value;
-            const categoryId = parseInt(document.getElementById('category').value);
-            const favorite = document.getElementById('favorite').checked;
-
-            console.log('Form data:', { 
-                title, ingredients, instructions, prepTime, 
-                cookTime, servings, difficulty, categoryId, favorite
-             });
-
             //  Get the token from localStorage
             const token = localStorage.getItem('token');
 
@@ -172,30 +175,65 @@
                 return;
             }
 
-            // Prepare data
-            const recipeData = {
-                title: title,
-                ingredients: ingredients,
-                instructions: instructions,
-                prep_time: prepTime,
-                cook_time: cookTime,
-                servings: servings,
-                difficulty: difficulty,
-                category_id: categoryId,
-                favorite: favorite
-            };
+            const formData = new FormData();
 
-            console.log('📤 Updating to API:', recipeData);
+            // Collect all form data
+            formData.append('title', document.getElementById('title').value);
+            formData.append('ingredients', document.getElementById('ingredients').value);
+            formData.append('instructions', document.getElementById('instructions').value);
+            formData.append('prep_time', parseInt(document.getElementById('prepTime').value));
+            formData.append('cook_time', parseInt(document.getElementById('cookTime').value));
+            formData.append('servings', parseInt(document.getElementById('servings').value));
+            formData.append('difficulty', document.getElementById('difficulty').value);
+            formData.append('category_id', parseInt(document.getElementById('category').value));
+            formData.append('favorite', document.getElementById('favorite').checked);
+
+            // // Collect all form data
+            // const title = document.getElementById('title').value;
+            // const ingredients = document.getElementById('ingredients').value;
+            // const instructions = document.getElementById('instructions').value;
+            // const prepTime = parseInt(document.getElementById('prepTime').value);
+            // const cookTime = parseInt(document.getElementById('cookTime').value);
+            // const servings = parseInt(document.getElementById('servings').value);
+            // const difficulty = document.getElementById('difficulty').value;
+            // const categoryId = parseInt(document.getElementById('category').value);
+            // const favorite = document.getElementById('favorite').checked;
+
+            // console.log('Form data:', { 
+            //     title, ingredients, instructions, prepTime, 
+            //     cookTime, servings, difficulty, categoryId, favorite
+            //  });
+
+            // // Prepare data
+            // const recipeData = {
+            //     title: title,
+            //     ingredients: ingredients,
+            //     instructions: instructions,
+            //     prep_time: prepTime,
+            //     cook_time: cookTime,
+            //     servings: servings,
+            //     difficulty: difficulty,
+            //     category_id: categoryId,
+            //     favorite: favorite
+            // };
+
+            // console.log('📤 Updating to API:', recipeData);
+
+            // ✅ Add image if selected
+            const imageInput = document.getElementById('image');
+            if (imageInput.files[0]) {
+                formData.append('image', imageInput.files[0]);
+            }
 
             try {
                 // Send POST request to API
                 const response = await fetch(`${API_URL}/api/recipes/${recipeId}`, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': 'application/json',
+                        // Don't set Content-Type! Browser sets it automatically
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify(recipeData)
+                    body: formData
                 });
 
                 const data = await response.json();
