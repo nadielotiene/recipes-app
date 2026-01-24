@@ -77,7 +77,7 @@
                 <div class="recipe-card" onclick="viewRecipe(${recipe.id})">
                     ${recipe.image && recipe.image !== 'null'
                         ? `<img class="recipe-card-image" src="${API_URL}/uploads/${recipe.image}" alt="${recipe.title}">`
-                        : `<div class="recipe-card-placeholder">🍳</div>`
+                        : `<img class="recipe-card-image default-image" src="./default-image.png" alt="recipe image">`
                     }
                     <h3 class="recipe-title">${recipe.title}</h3>
                     <p class="recipe-meta">By ${recipe.author}</p>

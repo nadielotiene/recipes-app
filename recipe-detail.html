@@ -18,7 +18,7 @@
     </nav>
 
     <main class="main">
-      <img class="omelette" src="./image-omelette.jpeg" alt="Omelette">
+      <img class="recipe-image" src="./default-image.png" alt="recipe image">
 
       <h1 class="title" id="recipeTitle">Loading...</h1>
 
@@ -102,14 +102,17 @@
                 console.log("Got recipe:", recipe);
 
                 // Update image
-                const imgElement = document.querySelector('.omelette');
+                const imgElement = document.querySelector('.recipe-image');
                 if (recipe.image) {
                   imgElement.src = `${API_URL}/uploads/${recipe.image}`;
                   imgElement.alt = recipe.title;
                   imgElement.style.display = 'block';
                 } else {
                   // Show placeholder or hide
-                  imgElement.style.display = 'none';
+                  // imgElement.style.display = 'none';
+                  imgElement.src = `./default-image.png`;
+                  imgElement.alt = "default image";
+                  imgElement.style.display = 'block';
                 }
 
                 // Update title

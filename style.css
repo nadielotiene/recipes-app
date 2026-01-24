@@ -302,10 +302,12 @@ h1, .title {
     box-shadow: 0 4px 16px rgba(0,0,0,0.1);
 }
 
-.omelette {
+.recipe-image {
     width: 100%;
     border-radius: 1rem;
     margin-bottom: 1.5rem;
+    max-height: 300px;
+    object-fit: cover;
 }
 
 .description {
@@ -401,7 +403,12 @@ table td {
     margin-bottom: 1rem;
 }
 
-.recipe-card-placeholder {
+/* .default-image {
+    filter: blur(1.5px);
+    opacity: .75;
+} */
+
+/* .recipe-card-placeholder {
     width: 100%; 
     height: 200px; 
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
@@ -412,14 +419,14 @@ table td {
     justify-content: center; 
     color: white; 
     font-size: 3rem;
-}
+} */
 
 .image-small, .image-p {
     color: #666; 
     font-size: 0.85rem;
 }
 
-.recipe-image {
+.create-recipe-image {
     max-width: 200px; 
     border-radius: 8px; 
     margin-top: 0.5rem;
@@ -647,7 +654,7 @@ body.login-page {
         position: relative;
     }
 
-    .omelette {
+    .recipe-image {
         position: absolute;
         top: 0;
         left: 0;
